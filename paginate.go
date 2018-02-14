@@ -97,6 +97,16 @@ func (p Paginate) CanNext() bool {
 	return p.page < p.MaxPage()
 }
 
+// Prev returns prev page
+func (p Paginate) Prev() int64 {
+	return max(p.page-1, 1)
+}
+
+// Next returns next page
+func (p Paginate) Next() int64 {
+	return min(p.page+1, p.MaxPage())
+}
+
 func min(a, b int64) int64 {
 	if a < b {
 		return a
