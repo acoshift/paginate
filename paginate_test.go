@@ -62,6 +62,8 @@ func TestNew(t *testing.T) {
 	assert.Equal(t, int64(10), p.PerPage())
 	assert.Equal(t, int64(0), p.Items())
 	assert.Equal(t, int64(1), p.MaxPage())
+
+	assert.Equal(t, int64(4), paginate.New(1, 5, 16).MaxPage())
 }
 
 func TestPages(t *testing.T) {

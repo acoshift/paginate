@@ -84,7 +84,11 @@ func (p Paginate) LimitOffset() (limit, offset int64) {
 
 // MaxPage returns max page
 func (p Paginate) MaxPage() int64 {
-	return max(p.items/p.perPage, 1)
+	m := p.items % p.perPage
+	if m > 0 {
+		m = 1
+	}
+	return max(p.items/p.perPage+m, 1)
 }
 
 // CanPrev returns is current page can go prev
