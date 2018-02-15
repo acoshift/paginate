@@ -17,8 +17,8 @@ func New(page, perPage, items int64) Paginate {
 	}
 	if page <= 0 {
 		page = 1
-	} else if maxPage := items / perPage; page > maxPage {
-		page = max(maxPage, 1)
+	} else if m := maxPage(items, perPage); page > m {
+		page = max(m, 1)
 	}
 	return Paginate{
 		page:    page,
@@ -82,13 +82,17 @@ func (p Paginate) LimitOffset() (limit, offset int64) {
 	return p.Limit(), p.Offset()
 }
 
-// MaxPage returns max page
-func (p Paginate) MaxPage() int64 {
-	m := p.items % p.perPage
+func maxPage(items, perPage int64) int64 {
+	m := items % perPage
 	if m > 0 {
 		m = 1
 	}
-	return max(p.items/p.perPage+m, 1)
+	return max(items/perPage+m, 1)
+}
+
+// MaxPage returns max page
+func (p Paginate) MaxPage() int64 {
+	return maxPage(p.items, p.perPage)
 }
 
 // CanPrev returns is current page can go prev
