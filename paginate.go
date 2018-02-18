@@ -41,7 +41,7 @@ func FromLimitOffset(limit, offset, count int64) Paginate {
 		offset = count
 	}
 	return Paginate{
-		page:    offset / limit,
+		page:    offset/limit + 1,
 		perPage: limit,
 		items:   count,
 	}
