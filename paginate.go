@@ -148,8 +148,14 @@ func (p Paginate) Pages(around, edge int64) []int64 {
 	maxPage := p.MaxPage()
 
 	var current int64 = 1
+	var m int64
 
-	for m := min(edge, p.page-around-1); current <= m; current++ {
+	if edge == p.page-around-2 {
+		m = p.page - around - 1
+	} else {
+		m = min(edge, p.page-around-1)
+	}
+	for ; current <= m; current++ {
 		xs = append(xs, current)
 	}
 
@@ -158,7 +164,13 @@ func (p Paginate) Pages(around, edge int64) []int64 {
 	}
 
 	current = max(current, p.page-around)
-	for m := min(p.page+around, maxPage); current <= m; current++ {
+
+	if p.page+around+1 == maxPage-edge {
+		m = p.page + around + 1
+	} else {
+		m = min(p.page+around, maxPage)
+	}
+	for ; current <= m; current++ {
 		xs = append(xs, current)
 	}
 
@@ -170,6 +182,5 @@ func (p Paginate) Pages(around, edge int64) []int64 {
 	for ; current <= maxPage; current++ {
 		xs = append(xs, current)
 	}
-
 	return xs
 }

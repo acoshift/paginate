@@ -110,6 +110,8 @@ func TestPages(t *testing.T) {
 	assert.Equal(t, []int64{0, 10, 0}, paginate.New(10, 1, 20).Pages(0, 0))
 	assert.Equal(t, []int64{1}, paginate.New(1, 1, 1).Pages(2, 2))
 	assert.Equal(t, []int64{1, 2, 3, 4, 5, 6, 0, 9, 10}, paginate.New(4, 1, 10).Pages(2, 2))
+	assert.Equal(t, []int64{1, 2, 0, 6, 7, 8, 9, 10, 11, 12, 13}, paginate.New(8, 1, 13).Pages(2, 2))
+	assert.Equal(t, []int64{1, 2, 3, 4, 5, 6, 7, 8, 0, 12, 13}, paginate.New(6, 1, 13).Pages(2, 2))
 	assert.Equal(t, []int64{1, 2, 3, 4, 5, 6}, paginate.New(4, 1, 6).Pages(2, 2))
 	assert.Equal(t, []int64{1, 2, 0, 6}, paginate.New(1, 1, 6).Pages(1, 1))
 	assert.Equal(t, []int64{1, 2, 0, 5, 6}, paginate.New(1, 1, 6).Pages(1, 2))
