@@ -8,7 +8,7 @@ type Paginate struct {
 }
 
 // New creates paginate from page, per page, and items
-func New(page, perPage, items int64) Paginate {
+func New(page, perPage, items int64) *Paginate {
 	if items < 0 {
 		items = 0
 	}
@@ -20,7 +20,7 @@ func New(page, perPage, items int64) Paginate {
 	} else if m := maxPage(items, perPage); page > m {
 		page = max(m, 1)
 	}
-	return Paginate{
+	return &Paginate{
 		page:    page,
 		perPage: perPage,
 		items:   items,
@@ -28,7 +28,7 @@ func New(page, perPage, items int64) Paginate {
 }
 
 // FromLimitOffset creates new paginate from limit, offset and count
-func FromLimitOffset(limit, offset, count int64) Paginate {
+func FromLimitOffset(limit, offset, count int64) *Paginate {
 	if count < 0 {
 		count = 0
 	}
@@ -40,7 +40,7 @@ func FromLimitOffset(limit, offset, count int64) Paginate {
 	} else if offset > count {
 		offset = count
 	}
-	return Paginate{
+	return &Paginate{
 		page:    offset/limit + 1,
 		perPage: limit,
 		items:   count,
@@ -48,37 +48,37 @@ func FromLimitOffset(limit, offset, count int64) Paginate {
 }
 
 // Page returns page
-func (p Paginate) Page() int64 {
+func (p *Paginate) Page() int64 {
 	return p.page
 }
 
 // PerPage returns per page
-func (p Paginate) PerPage() int64 {
+func (p *Paginate) PerPage() int64 {
 	return p.perPage
 }
 
 // Items returns items
-func (p Paginate) Items() int64 {
+func (p *Paginate) Items() int64 {
 	return p.items
 }
 
 // Count is the alias for Items
-func (p Paginate) Count() int64 {
+func (p *Paginate) Count() int64 {
 	return p.items
 }
 
 // Limit returns per page
-func (p Paginate) Limit() int64 {
+func (p *Paginate) Limit() int64 {
 	return p.perPage
 }
 
 // Offset returns offset for current page
-func (p Paginate) Offset() int64 {
+func (p *Paginate) Offset() int64 {
 	return (p.page - 1) * p.perPage
 }
 
 // LimitOffset returns limit and offet
-func (p Paginate) LimitOffset() (limit, offset int64) {
+func (p *Paginate) LimitOffset() (limit, offset int64) {
 	return p.Limit(), p.Offset()
 }
 
@@ -91,27 +91,27 @@ func maxPage(items, perPage int64) int64 {
 }
 
 // MaxPage returns max page
-func (p Paginate) MaxPage() int64 {
+func (p *Paginate) MaxPage() int64 {
 	return maxPage(p.items, p.perPage)
 }
 
 // CanPrev returns is current page can go prev
-func (p Paginate) CanPrev() bool {
+func (p *Paginate) CanPrev() bool {
 	return p.page > 1
 }
 
 // CanNext returns is current page can go next
-func (p Paginate) CanNext() bool {
+func (p *Paginate) CanNext() bool {
 	return p.page < p.MaxPage()
 }
 
 // Prev returns prev page
-func (p Paginate) Prev() int64 {
+func (p *Paginate) Prev() int64 {
 	return max(p.page-1, 1)
 }
 
 // Next returns next page
-func (p Paginate) Next() int64 {
+func (p *Paginate) Next() int64 {
 	return min(p.page+1, p.MaxPage())
 }
 
@@ -143,7 +143,7 @@ func max(a, b int64) int64 {
 // around is 3, and edge is 2
 // the result is
 // 1 2 0 7 8 9 10 11 12 13 0 19 20
-func (p Paginate) Pages(around, edge int64) []int64 {
+func (p *Paginate) Pages(around, edge int64) []int64 {
 	xs := make([]int64, 0)
 	maxPage := p.MaxPage()
 
@@ -182,5 +182,130 @@ func (p Paginate) Pages(around, edge int64) []int64 {
 	for ; current <= maxPage; current++ {
 		xs = append(xs, current)
 	}
+	return xs
+}
+
+// MovablePaginate is the paginate for movable list
+type MovablePaginate struct {
+	page    int64
+	perPage int64
+	pages   int64
+	cnt     int64
+}
+
+// NewMovable creates new movable paginate
+func NewMovable(page, perPage, pages int64) *MovablePaginate {
+	if perPage <= 0 {
+		perPage = 1
+	}
+	if page <= 0 {
+		page = 1
+	}
+	if pages <= 0 {
+		pages = 1
+	}
+	return &MovablePaginate{
+		page:    page,
+		perPage: perPage,
+		pages:   pages,
+		cnt:     (last(page, pages) - page + 1) * perPage,
+	}
+}
+
+// Page returns page
+func (p *MovablePaginate) Page() int64 {
+	return p.page
+}
+
+// PerPage returns per page
+func (p *MovablePaginate) PerPage() int64 {
+	return p.perPage
+}
+
+// Count return count
+func (p *MovablePaginate) Count() int64 {
+	return p.cnt
+}
+
+// SetCount sets count
+// where cnt is the count of next page to show
+//
+// `select count(*) from (select * from table offset {offset} limit {limit}) as t;`
+func (p *MovablePaginate) SetCount(cnt int64) *MovablePaginate {
+	p.cnt = cnt
+	return p
+}
+
+// Limit returns per page
+func (p *MovablePaginate) Limit() int64 {
+	return (last(p.page, p.pages)-p.page+1)*p.perPage + 1
+}
+
+// Offset returns offset for current page
+func (p *MovablePaginate) Offset() int64 {
+	return (p.page - 1) * p.perPage
+}
+
+// LimitOffset returns limit and offet
+func (p *MovablePaginate) LimitOffset() (limit, offset int64) {
+	return p.Limit(), p.Offset()
+}
+
+// MaxPage returns max page
+func (p *MovablePaginate) MaxPage() int64 {
+	if p.cnt <= p.perPage {
+		return p.page
+	}
+	maxPage := p.page + p.cnt/p.perPage - 1
+	if p.cnt%p.perPage > 0 {
+		maxPage++
+	}
+	return maxPage
+}
+
+// CanPrev returns is current page can go prev
+func (p *MovablePaginate) CanPrev() bool {
+	return p.page > 1
+}
+
+// CanNext returns is current page can go next
+func (p *MovablePaginate) CanNext() bool {
+	return p.page < p.MaxPage()
+}
+
+// Prev returns prev page
+func (p *MovablePaginate) Prev() int64 {
+	return max(p.page-1, 1)
+}
+
+// Next returns next page
+func (p *MovablePaginate) Next() int64 {
+	return min(p.page+1, p.MaxPage())
+}
+
+// First returns first page in paginate
+func (p *MovablePaginate) First() int64 {
+	return max(p.page-p.pages/2, 1)
+}
+
+// Last returns last page in paginate without calculate count
+func last(page, pages int64) int64 {
+	last := page + pages/2
+	if pages%2 == 0 {
+		last = last - min(page-pages/2, 1)
+	} else {
+		last = last - min(page-pages/2-1, 0)
+	}
+	return last
+}
+
+// Pages returns page number for paginate without last page
+func (p *MovablePaginate) Pages() []int64 {
+	xs := make([]int64, 0, p.pages)
+
+	for i := p.First(); i <= p.MaxPage(); i++ {
+		xs = append(xs, i)
+	}
+
 	return xs
 }
