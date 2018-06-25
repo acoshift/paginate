@@ -230,15 +230,30 @@ func (p *MovablePaginate) Count() int64 {
 // SetCount sets count
 // where cnt is the count of next page to show
 //
-// `select count(*) from (select * from table offset {offset} limit {limit}) as t;`
+// `select count(*) from (select * from table offset {CountOffset} limit {CountLimit}) as t;`
 func (p *MovablePaginate) SetCount(cnt int64) *MovablePaginate {
 	p.cnt = cnt
 	return p
 }
 
+// CountLimit returns limit for count
+func (p *MovablePaginate) CountLimit() int64 {
+	return (last(p.page, p.pages)-p.page+1)*p.perPage + 1
+}
+
+// CountOffset returns offset for count
+func (p *MovablePaginate) CountOffset() int64 {
+	return (p.page - 1) * p.perPage
+}
+
+// Counting runs set count from counter function
+func (p *MovablePaginate) Counting(counter func(limit, offset int64) int64) {
+	p.SetCount(counter(p.CountLimit(), p.CountOffset()))
+}
+
 // Limit returns per page
 func (p *MovablePaginate) Limit() int64 {
-	return (last(p.page, p.pages)-p.page+1)*p.perPage + 1
+	return p.perPage
 }
 
 // Offset returns offset for current page
