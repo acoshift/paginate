@@ -54,6 +54,9 @@ func (p *Paginate) Page() int64 {
 
 // PerPage returns per page
 func (p *Paginate) PerPage() int64 {
+	if p.perPage <= 0 {
+		return 1
+	}
 	return p.perPage
 }
 
@@ -69,12 +72,12 @@ func (p *Paginate) Count() int64 {
 
 // Limit returns per page
 func (p *Paginate) Limit() int64 {
-	return p.perPage
+	return p.PerPage()
 }
 
 // Offset returns offset for current page
 func (p *Paginate) Offset() int64 {
-	return (p.page - 1) * p.perPage
+	return (p.page - 1) * p.PerPage()
 }
 
 // LimitOffset returns limit and offet
@@ -92,7 +95,7 @@ func maxPage(items, perPage int64) int64 {
 
 // MaxPage returns max page
 func (p *Paginate) MaxPage() int64 {
-	return maxPage(p.items, p.perPage)
+	return maxPage(p.items, p.PerPage())
 }
 
 // CanPrev returns is current page can go prev
@@ -219,6 +222,9 @@ func (p *MovablePaginate) Page() int64 {
 
 // PerPage returns per page
 func (p *MovablePaginate) PerPage() int64 {
+	if p.perPage <= 0 {
+		return 1
+	}
 	return p.perPage
 }
 
@@ -238,12 +244,12 @@ func (p *MovablePaginate) SetCount(cnt int64) *MovablePaginate {
 
 // CountLimit returns limit for count
 func (p *MovablePaginate) CountLimit() int64 {
-	return (last(p.page, p.pages)-p.page+1)*p.perPage + 1
+	return (last(p.page, p.pages)-p.page+1)*p.PerPage() + 1
 }
 
 // CountOffset returns offset for count
 func (p *MovablePaginate) CountOffset() int64 {
-	return (p.page - 1) * p.perPage
+	return (p.page - 1) * p.PerPage()
 }
 
 // Counting runs set count from counter function
@@ -253,12 +259,12 @@ func (p *MovablePaginate) Counting(counter func(limit, offset int64) int64) {
 
 // Limit returns per page
 func (p *MovablePaginate) Limit() int64 {
-	return p.perPage
+	return p.PerPage()
 }
 
 // Offset returns offset for current page
 func (p *MovablePaginate) Offset() int64 {
-	return (p.page - 1) * p.perPage
+	return (p.page - 1) * p.PerPage()
 }
 
 // LimitOffset returns limit and offet
@@ -268,11 +274,12 @@ func (p *MovablePaginate) LimitOffset() (limit, offset int64) {
 
 // MaxPage returns max page
 func (p *MovablePaginate) MaxPage() int64 {
-	if p.cnt <= p.perPage {
+	perPage := p.PerPage()
+	if p.cnt <= perPage {
 		return p.page
 	}
-	maxPage := p.page + p.cnt/p.perPage - 1
-	if p.cnt%p.perPage > 0 {
+	maxPage := p.page + p.cnt/perPage - 1
+	if p.cnt%perPage > 0 {
 		maxPage++
 	}
 	return maxPage

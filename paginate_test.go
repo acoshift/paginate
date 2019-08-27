@@ -184,3 +184,8 @@ func TestMovablePages(t *testing.T) {
 	assert.Equal(t, []int64{3, 4, 5, 6}, paginate.NewMovable(5, 1, 4).Pages())
 	assert.Equal(t, []int64{4, 5, 6, 7}, paginate.NewMovable(6, 1, 4).Pages())
 }
+
+func TestEmpty(t *testing.T) {
+	assert.Equal(t, []int64{1}, paginate.New(0, 0, 0).Pages(2, 2))
+	assert.Equal(t, []int64{1}, (&paginate.Paginate{}).Pages(2, 2))
+}
